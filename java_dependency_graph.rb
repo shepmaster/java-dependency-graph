@@ -1,5 +1,9 @@
+require "rubygems"
+require "bundler/setup"
+
 require 'nokogiri'
 
+# Add our lib directory to the load path
 libdir = File.dirname(__FILE__) + '/lib'
 $LOAD_PATH.unshift(libdir) unless $LOAD_PATH.include?(libdir)
 
