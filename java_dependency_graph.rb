@@ -30,6 +30,11 @@ opts = OptionParser.new do |opts|
           'File with a newline-separated list of interfaces') do |file|
     options[:interface_filename] = file
   end
+
+  opts.on('--interesting-items REGEX',
+          'Only output links that match REGEX on either node') do |regex|
+    options[:interesting_items] = regex
+  end
 end
 options[:input_filenames] = opts.parse!
 
@@ -44,12 +49,14 @@ ignored_packages = ['com.google.common',
                     'org.apache.log4j',
                     'org.slf4j']
 
-core_list = NodeList.new
-no_self = IgnoreSelfReference.new(core_list)
-no_common = PackageRemover.new(no_self, *ignored_packages)
-interesting = OnlyTrackInteresting.new(no_common, /persistence/)
+node_list = NodeList.new
+node_list = IgnoreSelfReference.new(node_list)
+node_list = PackageRemover.new(node_list, *ignored_packages)
+if options[:interesting_items]
+  regex = Regexp.new(options[:interesting_items])
+  node_list = OnlyTrackInteresting.new(node_list, regex)
+end
 #only_packages = ClassStripper.new(no_common)
-nodes = interesting #only_packages
 
 filename = options[:input_filenames].first
 
@@ -67,7 +74,7 @@ graph.xpath("//package").each do |package|
       out_name = out.text
       next if out_name.empty?
 
-      nodes.link(name, out_name)
+      node_list.link(name, out_name)
     end
   end
 end
@@ -84,10 +91,10 @@ if interface_file
   end
 end
 
-#nodes.add_output(NotifierOutput.new(SummaryOutput.new(output_dir)))
-nodes.add_output(NotifierOutput.new(gv))
+node_list.add_output(NotifierOutput.new(SummaryOutput.new(output_dir)))
+node_list.add_output(NotifierOutput.new(gv))
 
-nodes.output
+node_list.output
 
 # generate interface file
 # git grep interface src/main/java/ | grep -v '\*.*interface' | grep -v '.entity.store.interfaces' | cut -d: -f1 | sort | uniq | sed -e 's@/@.@g' -e 's@.java@@g'
