@@ -25,6 +25,11 @@ opts = OptionParser.new do |opts|
           'Directory to write output to') do |dir|
     options[:output_directory] = dir
   end
+
+  opts.on('--interface-file FILE',
+          'File with a newline-separated list of interfaces') do |file|
+    options[:interface_filename] = file
+  end
 end
 options[:input_filenames] = opts.parse!
 
@@ -69,11 +74,15 @@ end
 
 output_dir = options[:output_directory]
 
-interfaces = File.open('/tmp/master-interfaces2') do |f|
-  f.map {|x| x.strip}
+gv = GraphvizOutput.new(output_dir)
+interface_file = options[:interface_filename]
+if interface_file
+  File.open(interface_file) do |f|
+    f.each do |line|
+      gv.add_interface(line.strip)
+    end
+  end
 end
-
-gv = GraphvizOutput.new(output_dir, interfaces)
 
 #nodes.add_output(NotifierOutput.new(SummaryOutput.new(output_dir)))
 nodes.add_output(NotifierOutput.new(gv))

@@ -1,11 +1,12 @@
 require 'graphviz'
+require 'set'
 
 class GraphvizOutput
-  def initialize(dir, interfaces)
+  def initialize(dir)
     @dir = dir
-    @interfaces = interfaces
     @graph = GraphViz.new(:G, :type => :digraph)
     @nodes = {}
+    @interfaces = Set.new
   end
 
   def add_link(from, to)
@@ -23,6 +24,10 @@ class GraphvizOutput
 
     @graph.output(:pdf => File.join(@dir, 'graph-dot.pdf'))
     @graph.output(:pdf => File.join(@dir, 'graph-circo.pdf'), :use => 'circo')
+  end
+
+  def add_interface(interface)
+    @interfaces << interface
   end
 
   private
