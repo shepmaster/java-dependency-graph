@@ -117,6 +117,3 @@ if (options.fetch(:output_graphviz) {true})
 end
 
 node_list.output
-
-# generate interface file
-# git grep interface src/main/java/ | grep -v '\*.*interface' | grep -v '.entity.store.interfaces' | cut -d: -f1 | sort | uniq | sed -e 's@/@.@g' -e 's@.java@@g'
