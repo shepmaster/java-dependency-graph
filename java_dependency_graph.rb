@@ -35,6 +35,11 @@ opts = OptionParser.new do |opts|
           'Only output links that match REGEX on either node') do |regex|
     options[:interesting_items] = regex
   end
+
+  opts.on('--[no-]strip-classes',
+          'When enabled, the last component of the node will be removed') do |strip|
+    options[:strip_classes] = strip
+  end
 end
 options[:input_filenames] = opts.parse!
 
@@ -56,7 +61,9 @@ if options[:interesting_items]
   regex = Regexp.new(options[:interesting_items])
   node_list = OnlyTrackInteresting.new(node_list, regex)
 end
-#only_packages = ClassStripper.new(no_common)
+if (options.fetch(:strip_classes) {true})
+  node_list = ClassStripper.new(node_list)
+end
 
 filename = options[:input_filenames].first
 
