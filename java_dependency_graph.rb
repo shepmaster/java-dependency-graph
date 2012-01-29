@@ -40,6 +40,16 @@ opts = OptionParser.new do |opts|
           'When enabled, the last component of the node will be removed') do |strip|
     options[:strip_classes] = strip
   end
+
+  opts.on('--[no-]output-summary',
+          'Outputs a textfile with summary information') do |summary|
+    options[:output_summary] = summary
+  end
+
+  opts.on('--[no-]output-graphviz',
+          'Outputs PDF graphs of dependency information') do |graphviz|
+    options[:output_graphviz] = graphviz
+  end
 end
 options[:input_filenames] = opts.parse!
 
@@ -88,18 +98,23 @@ end
 
 output_dir = options[:output_directory]
 
-gv = GraphvizOutput.new(output_dir)
-interface_file = options[:interface_filename]
-if interface_file
-  File.open(interface_file) do |f|
-    f.each do |line|
-      gv.add_interface(line.strip)
-    end
-  end
+if (options.fetch(:output_summary) {true})
+  node_list.add_output(NotifierOutput.new(SummaryOutput.new(output_dir)))
 end
 
-node_list.add_output(NotifierOutput.new(SummaryOutput.new(output_dir)))
-node_list.add_output(NotifierOutput.new(gv))
+if (options.fetch(:output_graphviz) {true})
+  gv = GraphvizOutput.new(output_dir)
+  interface_file = options[:interface_filename]
+  if interface_file
+    File.open(interface_file) do |f|
+      f.each do |line|
+        gv.add_interface(line.strip)
+      end
+    end
+  end
+
+  node_list.add_output(NotifierOutput.new(gv))
+end
 
 node_list.output
 
