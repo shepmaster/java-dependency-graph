@@ -1,6 +1,7 @@
 require "rubygems"
 require "bundler/setup"
 
+require 'optparse'
 require 'nokogiri'
 
 # Add our lib directory to the load path
@@ -15,6 +16,17 @@ require 'only_track_interesting'
 require 'summary_output'
 require 'graphviz_output'
 require 'notifier_output'
+
+options = {}
+opts = OptionParser.new do |opts|
+  opts.banner = "Usage: java_dependency_graph.rb [options] input_file"
+
+  opts.on('-o', '--output-directory DIRECTORY',
+          'Directory to write output to') do |dir|
+    options[:output_directory] = dir
+  end
+end
+options[:input_filenames] = opts.parse!
 
 ignored_packages = ['com.google.common',
                     'com.google.commons',
@@ -34,8 +46,7 @@ interesting = OnlyTrackInteresting.new(no_common, /persistence/)
 #only_packages = ClassStripper.new(no_common)
 nodes = interesting #only_packages
 
-filename = '/tmp/palmer-graph.xml'
-#filename = '/tmp/master-graph.xml'
+filename = options[:input_filenames].first
 
 graph = Nokogiri::XML(open(filename))
 graph.xpath("//package").each do |package|
@@ -52,7 +63,7 @@ graph.xpath("//package").each do |package|
   end
 end
 
-output_dir = '/tmp/play'
+output_dir = options[:output_directory]
 
 interfaces = File.open('/tmp/master-interfaces2') do |f|
   f.map {|x| x.strip}
