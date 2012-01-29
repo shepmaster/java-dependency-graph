@@ -48,6 +48,10 @@ nodes = interesting #only_packages
 
 filename = options[:input_filenames].first
 
+if filename.nil? || filename.empty?
+  raise "Input filename is required"
+end
+
 graph = Nokogiri::XML(open(filename))
 graph.xpath("//package").each do |package|
   package.xpath("class").each do |start_class|
